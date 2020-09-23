@@ -14,6 +14,7 @@ namespace CaptainHook\App\Runner;
 use CaptainHook\App\Config;
 use CaptainHook\App\Console\IO;
 use CaptainHook\App\Console\IOUtil;
+use CaptainHook\App\Exception\ActionFailed;
 use RuntimeException;
 
 /**
@@ -98,10 +99,28 @@ abstract class Hook extends RepositoryAware
             $this->io->write(['', '<info>No actions to execute</info>'], true, IO::VERBOSE);
             return;
         }
+
         $this->beforeHook();
+
+        $failedActions = 0;
         foreach ($actions as $action) {
-            $this->handleAction($action);
+            try {
+                $this->handleAction($action);
+            } catch (ActionFailed $exception) {
+                $this->io->write($exception->getMessage());
+
+                if ($this->config->shouldExecuteAllActions()) {
+                    $failedActions++;
+                } else {
+                    throw new ActionFailed('Action failed; please see above error messages');
+                }
+            }
         }
+
+        if ($failedActions > 0) {
+            throw new ActionFailed($failedActions . ' action(s) failed; please see above error messages');
+        }
+
         $this->afterHook();
     }
 
@@ -114,15 +133,12 @@ abstract class Hook extends RepositoryAware
      */
     protected function handleAction(Config\Action $action): void
     {
-        $this->io->write(['', 'Action: <comment>' . $action->getAction() . '</comment>'], true, IO::VERBOSE);
-
         if (!$this->doConditionsApply($action->getConditions())) {
-            $this->io->write(
-                ['', 'Skipped due to failing conditions'],
-                true,
-                IO::VERBOSE
-            );
+            $this->io->write(['', 'Action: <comment>' . $action->getAction() . '</comment>'], true, IO::VERBOSE);
+            $this->io->write('Skipped due to failing conditions', true, IO::VERBOSE);
             return;
+        } else {
+            $this->io->write(['', 'Action: <comment>' . $action->getAction() . '</comment>'], true);
         }
 
         $execMethod = self::getExecMethod(Util::getExecType($action->getAction()));
