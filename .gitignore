@@ -16,7 +16,6 @@ tools/phpstan
 
 # Ignore composer libs
 /vendor/
-/composer.lock
 
 # Ignore local dev configuration
 /captainhook.json

@@ -1,5 +1,5 @@
 {
-  "name": "captainhook/captainhook",
+  "name": "c24holdingit/captainhook",
   "type": "library",
   "description": "PHP git hook manager",
   "keywords": ["git", "hooks", "pre-commit", "pre-push", "commit-msg", "prepare-commit-msg", "post-merge"],
@@ -63,7 +63,6 @@
     "sort-packages": true
   },
   "scripts": {
-    "post-install-cmd": "tools/phive install",
     "test": "tools/phpunit",
     "analyse": "tools/phpstan analyse",
     "style": "tools/phpcs --standard=psr12 src tests"
